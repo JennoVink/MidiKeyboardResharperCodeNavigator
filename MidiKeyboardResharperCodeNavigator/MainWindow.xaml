@@ -43,19 +43,6 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button Command="{Binding RecordStopButtonCommand}" Margin="4" IsEnabled="{Binding IsConnected}">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="Content" Value="Click to set stop sound button" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsRecording, Converter={StaticResource DictionaryItemConverter}, ConverterParameter=stop}" Value="True">
-                                <Setter Property="Content" Value="Recording stop button... Press any key." />
-                                <Setter Property="Foreground" Value="Red" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
             <Button Command="{Binding RecordVolumeKnobCommand}" Margin="4" IsEnabled="{Binding IsConnected}">
                 <Button.Style>
                     <Style TargetType="Button">
@@ -85,8 +72,6 @@
                         <Border BorderBrush="Black" BorderThickness="2" Padding="2" Margin="2" Width="150" Height="200">
                             <StackPanel>
                                 <TextBlock Text="{Binding SoundPath}" TextAlignment="Center" TextWrapping="WrapWithOverflow"/>
-                                <Button Content="Select Filepath" Command="{Binding ElementName=MainGrid,
-                                    Path=DataContext.SelectSoundPathCommand}" CommandParameter="{Binding Id}"/>
                                 <TextBlock Text="{Binding KeyId}" TextAlignment="Center"/>
                                 <Button Command="{Binding ElementName=MainGrid,
                                     Path=DataContext.RecordButtonCommand}" CommandParameter="{Binding Id}">

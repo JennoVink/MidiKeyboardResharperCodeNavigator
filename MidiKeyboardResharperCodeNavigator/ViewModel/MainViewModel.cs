@@ -42,7 +42,7 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
         /// </summary>
         public MainViewModel()
         {
-            SoundEntries.Add(new SoundEntry(0, "28", new Uri(@"C:\sounds\fuifje1.mp3")));
+            SoundEntries.Add(new SoundEntry(0, "28"));
 
             Console.WriteLine(Properties.Settings.Default.SoundboardSettings);
             if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.SoundboardSettings))
@@ -53,18 +53,16 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
             RemoveSoundCommand = new RelayCommand<string>((soundId) => RemoveSoundCommandExecuted(soundId));
             AddNewKeyCommand = new RelayCommand(AddNewKeyCommandExecuted);
             RecordStopButtonCommand = new RelayCommand(RecordStopButtonCommandExecuted);
-            RecordVolumeKnobCommand = new RelayCommand(RecordVolumeKnobCommandExecuted);
+            RecordScrollKnobCommand = new RelayCommand(RecordScrollKnobCommandExecuted);
 
             IsRecording = new Dictionary<string, bool>
             {
                 { "sound", false},
-                { "stop", false},
                 { "volume", false},
             };
 
             SpecialButtons = new Dictionary<string, string>
             {
-                {"stop", "03"},
                 { "volume", "02" }
             };
 
@@ -78,21 +76,20 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
 #endif
         }
 
-        private void RecordVolumeKnobCommandExecuted()
+        private void RecordScrollKnobCommandExecuted()
         {
             IsRecording["volume"] = true;
             RaisePropertyChanged(nameof(IsRecording));
         }
 
-        private void SetVolume(int volume)
+        /// <summary>
+        /// KnobLevel is from 0 <--> 100.
+        /// </summary>
+        /// <param name="knobLevel"></param>
+        private void ScrollThrougEntries(int knobLevel)
         {
-            List<int> list = new List<int> { 2, 5, 7, 10 };
-            int number = 9;
-
-            int closest = SoundEntries.Select(x => x.Id * 10).Aggregate((x, y) => Math.Abs(x - volume) < Math.Abs(y - volume) ? x : y);
-            Console.WriteLine(closest);
-
-            PlaySound(closest / 10);
+            int closest = SoundEntries.Select(x => x.Id * 10).Aggregate((x, y) => Math.Abs(x - knobLevel) < Math.Abs(y - knobLevel) ? x : y);
+            ButtonPressed(closest / 10);
         }
 
         private void RecordStopButtonCommandExecuted()
@@ -121,7 +118,6 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
         public int RecordingForSoundEntryId { get; set; } = -1;
 
         public ICommand OpenConnectionCommand { get; set; }
-        public RelayCommand<string> SelectSoundPathCommand { get; set; }
         public RelayCommand<string> RecordButtonCommand { get; set; }
         public RelayCommand<string> RemoveSoundCommand { get; set; }
         public ICommand AddNewKeyCommand { get; set; }
@@ -151,7 +147,7 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
             new RelayCommand<CancelEventArgs>(
                 SaveSettings);
 
-        public ICommand RecordVolumeKnobCommand { get; set; }
+        public ICommand RecordScrollKnobCommand { get; set; }
 
         private void OpenConnectionCommandExecuted()
         {
@@ -203,15 +199,7 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
                     IsRecording["volume"] = false;
                     RaisePropertyChanged(nameof(IsRecording));
                 }
-                if (IsRecording["stop"])
-                {
-                    SpecialButtons["stop"] = ev.AllData[1].ToString("X2");
-                    Debug.WriteLine($"Stop button recording ended {ev.AllData[1]:X2}");
-
-                    IsRecording["stop"] = false;
-                    RaisePropertyChanged(nameof(IsRecording));
-                }
-                else if (IsRecording["sound"])
+                if (IsRecording["sound"])
                 {
                     IsRecording["sound"] = false;
                     Debug.WriteLine($"recording ended {ev.AllData[1]:X2}");
@@ -226,15 +214,11 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
                 }
                 else if (ev.Status == 144) // pressed button
                 {
-                    PlaySound(ev.AllData[1].ToString("X2"));
-                }
-                else if (ev.AllData[1].ToString("X2") == SpecialButtons["stop"])
-                {
-                    StopAllSounds();
+                    ButtonPressed(ev.AllData[1].ToString("X2"));
                 }
                 else if (ev.AllData[1].ToString("X2") == SpecialButtons["volume"])
                 {
-                    SetVolume((int)(int.Parse(ev.AllData[2].ToString()) / 127.0 * 100));
+                    ScrollThrougEntries((int)(int.Parse(ev.AllData[2].ToString()) / 127.0 * 100));
                 }
             }
         }
@@ -245,11 +229,9 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
             IsRecording["sound"] = true;
             RecordingForSoundEntryId = int.Parse(soundEntryId);
             RaisePropertyChanged(nameof(IsRecording));
-
-            Debug.WriteLine("recording started");
         }
 
-        private void PlaySound(string midiKeyIndex)
+        private void ButtonPressed(string midiKeyIndex)
         {
             var soundEntry = SoundEntries.FirstOrDefault(x => x.KeyId == midiKeyIndex);
             if (soundEntry != null)
@@ -259,21 +241,13 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
             }
         }
 
-        private void PlaySound(int slotId)
+        private void ButtonPressed(int slotId)
         {
             var soundEntry = SoundEntries.FirstOrDefault(x => x.Id == slotId);
             if (soundEntry != null)
             {
                 soundEntry.Play(lastPlayedIndex == soundEntry.Id);
                 lastPlayedIndex = soundEntry.Id;
-            }
-        }
-
-        private void StopAllSounds()
-        {
-            foreach (var soundEntry in SoundEntries)
-            {
-                soundEntry.Stop();
             }
         }
 
@@ -285,8 +259,8 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
 
         private void MonitorLoad(object sender, EventArgs e)
         {
-            var inp = MidiInInfo.Informations;
-            foreach (var midiInInfo in inp)
+            var midiInInfos = MidiInInfo.Informations;
+            foreach (var midiInInfo in midiInInfos)
             {
                 InputDevices.Add(midiInInfo);
             }

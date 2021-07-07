@@ -18,13 +18,13 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
 
 
         [JsonConstructor]
-        public SoundEntry(int id, string keyId, Uri soundPath)
+        public SoundEntry(int id, string keyId)
         {
             Id = id;
             KeyId = keyId;
         }
 
-        public SoundEntry(int id) : this(id, "", new Uri(@"c:\")) { }
+        public SoundEntry(int id) : this(id, string.Empty) { }
 
         public void Play(bool tappedTwice)
         {
@@ -41,11 +41,5 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
             });
 
         }
-
-        public void Stop()
-        {
-            // no-op
-        }
-
     }
 }
