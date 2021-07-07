@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiKeyboardSoundboard", "MidiKeyboardSoundboard\MidiKeyboardSoundboard.csproj", "{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreMmSystem", "MidiKeyboardResharperCodeNavigator\CoreMmSystem\CoreMmSystem.csproj", "{D776C41E-EA42-4538-A442-85F80BB5341B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreMmSystem", "MidiKeyboardSoundboard\CoreMmSystem\CoreMmSystem.csproj", "{D776C41E-EA42-4538-A442-85F80BB5341B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiKeyboardSoundboard", "MidiKeyboardResharperCodeNavigator\MidiKeyboardSoundboard.csproj", "{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D776C41E-EA42-4538-A442-85F80BB5341B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D776C41E-EA42-4538-A442-85F80BB5341B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D776C41E-EA42-4538-A442-85F80BB5341B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D776C41E-EA42-4538-A442-85F80BB5341B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AD25BF0-8E33-4134-B6E4-58EBEAEB36E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

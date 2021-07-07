@@ -2,9 +2,11 @@
 using Newtonsoft.Json;
 using System;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Media;
+using Application = System.Windows.Application;
 
-namespace MidiKeyboardSoundboard.ViewModel
+namespace MidiKeyboardResharperCodeNavigator.ViewModel
 {
     /// <summary>
     /// An entry representing a sound and a key (on the midi keyboard/pad).
@@ -13,38 +15,36 @@ namespace MidiKeyboardSoundboard.ViewModel
     {
         public int Id { get; set; }
         public string KeyId { get; set; }
-        public Uri SoundPath { get; set; }
 
-        [JsonIgnore]
-        public MediaPlayer Player { get; set; }
 
         [JsonConstructor]
         public SoundEntry(int id, string keyId, Uri soundPath)
         {
             Id = id;
             KeyId = keyId;
-            SoundPath = soundPath;
-            Player = new MediaPlayer();
         }
 
         public SoundEntry(int id) : this(id, "", new Uri(@"c:\")) { }
 
-        public void Play()
+        public void Play(bool tappedTwice)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                Player.Open(SoundPath);
-                Player.Play();
+                if (tappedTwice)
+                {
+                    SendKeys.SendWait($"^+{Id + 1}");
+                }
+                else
+                {
+                    SendKeys.SendWait($"^{Id + 1}");
+                }
             });
 
         }
 
         public void Stop()
         {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                Player.Stop();
-            });
+            // no-op
         }
 
     }

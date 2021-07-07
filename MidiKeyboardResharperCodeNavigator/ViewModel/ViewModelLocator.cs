@@ -1,7 +1,7 @@
 ﻿/*
   In App.xaml:
   <Application.Resources>
-      <vm:ViewModelLocator xmlns:vm="clr-namespace:MidiKeyboardSoundboard"
+      <vm:ViewModelLocator xmlns:vm="clr-namespace:MidiKeyboardResharperCodeNavigator"
                            x:Key="Locator" />
   </Application.Resources>
   
@@ -15,7 +15,7 @@
 using CommonServiceLocator;
 using GalaSoft.MvvmLight.Ioc;
 
-namespace MidiKeyboardSoundboard.ViewModel
+namespace MidiKeyboardResharperCodeNavigator.ViewModel
 {
     /// <summary>
     /// This class contains static references to all the view models in the

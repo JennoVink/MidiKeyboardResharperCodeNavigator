@@ -15,7 +15,7 @@ using System.Windows;
 using System.Windows.Input;
 using InputDevice = PureMidi.CoreMmSystem.MidiIO.InputDevice;
 
-namespace MidiKeyboardSoundboard.ViewModel
+namespace MidiKeyboardResharperCodeNavigator.ViewModel
 {
     /// <summary>
     /// This class contains properties that the main View can data bind to.
@@ -36,6 +36,7 @@ namespace MidiKeyboardSoundboard.ViewModel
         public bool IsConnected { get; set; }
 
 
+
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
@@ -48,7 +49,6 @@ namespace MidiKeyboardSoundboard.ViewModel
                 SoundEntries = JsonConvert.DeserializeObject<ObservableCollection<SoundEntry>>(Properties.Settings.Default.SoundboardSettings);
 
             OpenConnectionCommand = new RelayCommand(OpenConnectionCommandExecuted);
-            SelectSoundPathCommand = new RelayCommand<string>((MidiKeyId) => SelectSoundPathCommandExecuted(MidiKeyId));
             RecordButtonCommand = new RelayCommand<string>((soundId) => RecordButtonCommandExecuted(soundId));
             RemoveSoundCommand = new RelayCommand<string>((soundId) => RemoveSoundCommandExecuted(soundId));
             AddNewKeyCommand = new RelayCommand(AddNewKeyCommandExecuted);
@@ -72,6 +72,10 @@ namespace MidiKeyboardSoundboard.ViewModel
                 SpecialButtons = JsonConvert.DeserializeObject<Dictionary<string, string>>(Properties.Settings.Default.SpecialButtons);
 
             MonitorLoad(this, EventArgs.Empty);
+
+#if DEBUG
+            OpenConnectionCommandExecuted();
+#endif
         }
 
         private void RecordVolumeKnobCommandExecuted()
@@ -82,7 +86,13 @@ namespace MidiKeyboardSoundboard.ViewModel
 
         private void SetVolume(int volume)
         {
-            defaultPlaybackDevice.Volume = volume;
+            List<int> list = new List<int> { 2, 5, 7, 10 };
+            int number = 9;
+
+            int closest = SoundEntries.Select(x => x.Id * 10).Aggregate((x, y) => Math.Abs(x - volume) < Math.Abs(y - volume) ? x : y);
+            Console.WriteLine(closest);
+
+            PlaySound(closest / 10);
         }
 
         private void RecordStopButtonCommandExecuted()
@@ -108,30 +118,6 @@ namespace MidiKeyboardSoundboard.ViewModel
             SoundEntries.Remove(SoundEntries.First(x => x.Id == int.Parse(soundId)));
         }
 
-        private void SelectSoundPathCommandExecuted(string id)
-        {
-            // Create OpenFileDialog 
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-
-            // Set filter for file extension and default file extension 
-            dlg.DefaultExt = ".mp3";
-            dlg.Filter = "mp3 Files (*.mp3)|*.mp3|WAV Files (*.wav)|*.wav|Midi Files (*.mid)|*.mid";
-            dlg.Multiselect = true;
-
-            // Display OpenFileDialog by calling ShowDialog method 
-            bool? result = dlg.ShowDialog();
-
-            // Get the selected file name and display in a TextBox 
-            if (result == true)
-            {
-                SoundEntries.First(x => x.Id == int.Parse(id)).SoundPath = new Uri(dlg.FileName);
-                foreach (var fileName in dlg.FileNames.Skip(1))
-                {
-                    SoundEntries.Add(new SoundEntry((SoundEntries.LastOrDefault()?.Id ?? -1) + 1, "", new Uri(fileName)));
-                }
-            }
-        }
-
         public int RecordingForSoundEntryId { get; set; } = -1;
 
         public ICommand OpenConnectionCommand { get; set; }
@@ -140,6 +126,8 @@ namespace MidiKeyboardSoundboard.ViewModel
         public RelayCommand<string> RemoveSoundCommand { get; set; }
         public ICommand AddNewKeyCommand { get; set; }
         public ICommand RecordStopButtonCommand { get; set; }
+
+        private int lastPlayedIndex = -1;
 
         // index 'sound': normal recording of a sound button
         // index 'stop': recording of the stop button
@@ -164,9 +152,6 @@ namespace MidiKeyboardSoundboard.ViewModel
                 SaveSettings);
 
         public ICommand RecordVolumeKnobCommand { get; set; }
-
-        readonly CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
-
 
         private void OpenConnectionCommandExecuted()
         {
@@ -201,12 +186,12 @@ namespace MidiKeyboardSoundboard.ViewModel
         {
             if (ev.MidiEventType == EMidiEventType.Short)
             {
-                Console.WriteLine(ev.Hex + " |  "
-                                         + ev.Status.ToString("X2").ToUpper() + "  |  " +
-                                         (ev.Status & 0xF0).ToString("X2").ToUpper() + " | " +
-                                         ((ev.Status & 0x0F) + 1).ToString("X2").ToUpper() + " |  " +
-                                         ev.AllData[1].ToString("X2").ToUpper() + "   |  " +
-                                         ev.AllData[2].ToString("X2").ToUpper() + "   | ");
+                //Console.WriteLine(ev.Hex + " |  "
+                //                         + ev.Status.ToString("X2").ToUpper() + "  |  " +
+                //                         (ev.Status & 0xF0).ToString("X2").ToUpper() + " | " +
+                //                         ((ev.Status & 0x0F) + 1).ToString("X2").ToUpper() + " |  " +
+                //                         ev.AllData[1].ToString("X2").ToUpper() + "   |  " +
+                //                         ev.AllData[2].ToString("X2").ToUpper() + "   | ");
 
                 // ignore autosensing
                 if (ev.Hex == "FE0000" && IgnoreAutoSensingSignals)
@@ -266,7 +251,22 @@ namespace MidiKeyboardSoundboard.ViewModel
 
         private void PlaySound(string midiKeyIndex)
         {
-            SoundEntries.FirstOrDefault(x => x.KeyId == midiKeyIndex)?.Play();
+            var soundEntry = SoundEntries.FirstOrDefault(x => x.KeyId == midiKeyIndex);
+            if (soundEntry != null)
+            {
+                soundEntry.Play(lastPlayedIndex == soundEntry.Id);
+                lastPlayedIndex = soundEntry.Id;
+            }
+        }
+
+        private void PlaySound(int slotId)
+        {
+            var soundEntry = SoundEntries.FirstOrDefault(x => x.Id == slotId);
+            if (soundEntry != null)
+            {
+                soundEntry.Play(lastPlayedIndex == soundEntry.Id);
+                lastPlayedIndex = soundEntry.Id;
+            }
         }
 
         private void StopAllSounds()

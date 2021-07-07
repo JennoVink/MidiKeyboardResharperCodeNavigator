@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Data;
 
-namespace MidiKeyboardSoundboard.Converters
+namespace MidiKeyboardResharperCodeNavigator.Converters
 {
     public class MultiValueEqualityConverter : IMultiValueConverter
     {
