@@ -11,9 +11,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 using System.Windows.Input;
 using InputDevice = PureMidi.CoreMmSystem.MidiIO.InputDevice;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MidiKeyboardResharperCodeNavigator.ViewModel
 {
@@ -35,8 +37,6 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
 
         public bool IsConnected { get; set; }
 
-
-
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
@@ -52,7 +52,6 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
             RecordButtonCommand = new RelayCommand<string>((soundId) => RecordButtonCommandExecuted(soundId));
             RemoveSoundCommand = new RelayCommand<string>((soundId) => RemoveSoundCommandExecuted(soundId));
             AddNewKeyCommand = new RelayCommand(AddNewKeyCommandExecuted);
-            RecordStopButtonCommand = new RelayCommand(RecordStopButtonCommandExecuted);
             RecordScrollKnobCommand = new RelayCommand(RecordScrollKnobCommandExecuted);
 
             IsRecording = new Dictionary<string, bool>
@@ -69,11 +68,23 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
             if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.SpecialButtons))
                 SpecialButtons = JsonConvert.DeserializeObject<Dictionary<string, string>>(Properties.Settings.Default.SpecialButtons);
 
+            doubleTapTimer = new Timer(500);
+            doubleTapTimer.AutoReset = false;
+
+            knobAntiSpamTimer = new Timer(250);
+            knobAntiSpamTimer.AutoReset = false;
+            knobAntiSpamTimer.Elapsed += KnobAntiSpamTimer_Elapsed;
+
             MonitorLoad(this, EventArgs.Empty);
 
 #if DEBUG
             OpenConnectionCommandExecuted();
 #endif
+        }
+
+        private void KnobAntiSpamTimer_Elapsed(object sender, EventArgs e)
+        {
+            ButtonPressed(mostRecentClosest / 10);
         }
 
         private void RecordScrollKnobCommandExecuted()
@@ -89,7 +100,12 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
         private void ScrollThrougEntries(int knobLevel)
         {
             int closest = SoundEntries.Select(x => x.Id * 10).Aggregate((x, y) => Math.Abs(x - knobLevel) < Math.Abs(y - knobLevel) ? x : y);
-            ButtonPressed(closest / 10);
+
+            mostRecentClosest = closest;
+            if (!knobAntiSpamTimer.Enabled)
+            {
+                knobAntiSpamTimer.Start();
+            }
         }
 
         private void RecordStopButtonCommandExecuted()
@@ -124,6 +140,10 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
         public ICommand RecordStopButtonCommand { get; set; }
 
         private int lastPlayedIndex = -1;
+
+        private Timer doubleTapTimer;
+        private Timer knobAntiSpamTimer;
+        private int mostRecentClosest;
 
         // index 'sound': normal recording of a sound button
         // index 'stop': recording of the stop button
@@ -234,11 +254,14 @@ namespace MidiKeyboardResharperCodeNavigator.ViewModel
         private void ButtonPressed(string midiKeyIndex)
         {
             var soundEntry = SoundEntries.FirstOrDefault(x => x.KeyId == midiKeyIndex);
+
             if (soundEntry != null)
             {
-                soundEntry.Play(lastPlayedIndex == soundEntry.Id);
+                soundEntry.Play(lastPlayedIndex == soundEntry.Id && doubleTapTimer.Enabled);
                 lastPlayedIndex = soundEntry.Id;
+                doubleTapTimer.Start();
             }
+
         }
 
         private void ButtonPressed(int slotId)

@@ -43,14 +43,14 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button Command="{Binding RecordVolumeKnobCommand}" Margin="4" IsEnabled="{Binding IsConnected}">
+            <Button Command="{Binding RecordScrollKnobCommand}" Margin="4" IsEnabled="{Binding IsConnected}">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Content" Value="Click to configure the volume knob"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsRecording, Converter={StaticResource DictionaryItemConverter}, ConverterParameter=volume}" Value="True">
                                 <Setter Property="Foreground" Value="Red" />
-                                <Setter Property="Content" Value="Recording volume knob." />
+                                <Setter Property="Content" Value="Recording scroll knob." />
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
